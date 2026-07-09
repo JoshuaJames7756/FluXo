@@ -88,3 +88,96 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* Feedback táctil nativo: simula la pulsación física de un botón en móviles */
+.main-action-btn {
+  transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+.main-action-btn:active {
+  transform: scale(0.97); /* Pequeña contracción elástica */
+  opacity: 0.9;
+}
+
+/* Toast de confirmación flotante premium */
+.feedback-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #06B6D4;
+  color: #0B111E;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+  animation: slide-down-toast 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slide-down-toast {
+  from { top: -20px; opacity: 0; }
+  to { top: 24px; opacity: 1; }
+}
+
+/* Bloqueo sutil de UI cuando procesa */
+.ui-disabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   ESTADOS SKELETON PARA DASHBOARD
+   ========================================================================== */
+.dashboard-loading-state {
+  display: flex;
+  flex-direction: column;
+  background-color: #0B111E;
+}
+
+.skeleton-header-total {
+  height: 140px;
+  background: #131A26;
+  border-bottom: 1px solid #1E293B;
+  width: 100%;
+}
+
+.pocket-card-skeleton {
+  background-color: #131A26;
+  border: 1px solid #1E293B;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  height: 90px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pocket-title-sk {
+  width: 90px;
+  height: 14px;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+  background-size: 200% 100%;
+  animation: pulse-skeleton 1.5s infinite linear;
+}
+
+.pocket-balance-sk {
+  width: 140px;
+  height: 22px;
+  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+  background-size: 200% 100%;
+  animation: pulse-skeleton 1.5s infinite linear;
+}
+
+.bottom-dock-skeleton {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: #0B111E;
+  border-top: 1px solid #1E293B;
+}
