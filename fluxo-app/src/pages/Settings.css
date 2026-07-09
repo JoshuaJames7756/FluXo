@@ -1,0 +1,39 @@
+.settings-section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.settings-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: var(--space-xs);
+}
+
+.settings-section-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-md);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.current-balance-hint {
+  font-size: 12px;
+  color: var(--color-primary);
+  margin-top: calc(var(--space-xs) * -1);
+}
+
+.settings-feedback {
+  font-size: 12px;
+  color: var(--color-primary);
+  text-align: center;
+  font-weight: 600;
+}

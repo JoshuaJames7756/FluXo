@@ -1,0 +1,17 @@
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.quick-action-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-btn);
+  padding: var(--space-md);
+  color: var(--color-expense);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}

@@ -1,0 +1,30 @@
+:root {
+  /* Fondos de base fría */
+  --bg-main: #0B111E;
+  --bg-surface: #1E2638;
+  --border-subtle: #2A364F;
+
+  /* Identidad y Éxito */
+  --color-primary: #06B6D4;
+  --color-primary-glow: rgba(6, 182, 212, 0.15);
+
+  /* Alertas y flujos especiales */
+  --color-binance: #F59E0B;
+  --color-expense: #F43F5E;
+
+  /* Tipografía */
+  --text-main: #F8FAFC;
+  --text-muted: #64748B;
+
+  /* Espaciados y radios (tokens de soporte, no estaban en el brief pero los necesitamos para consistencia) */
+  --radius-card: 12px;
+  --radius-btn: 10px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+
+  /* Altura del bottom dock, para que el contenido central no quede tapado */
+  --dock-height: 140px;
+  --header-height: 96px;
+}

@@ -1,0 +1,42 @@
+.pocket-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  border-left: 4px solid;
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.pocket-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pocket-icon {
+  font-size: 22px;
+}
+
+.pocket-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.pocket-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pocket-currency {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pocket-balance {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}

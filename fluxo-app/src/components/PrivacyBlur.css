@@ -1,0 +1,10 @@
+.privacy-blur {
+  display: inline-block;
+  transition: filter 0.2s ease;
+}
+
+.privacy-blur.is-private {
+  filter: blur(6px);
+  user-select: none;
+  pointer-events: none;
+}
