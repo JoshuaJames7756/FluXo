@@ -1,10 +1,12 @@
 .privacy-blur {
+  transition: filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-block;
-  transition: filter 0.2s ease;
+  will-change: filter;
 }
 
+/* Aplica el filtro de desenfoque exacto sin alterar las dimensiones ni causar saltos de diseño */
 .privacy-blur.is-private {
-  filter: blur(6px);
+  filter: blur(8px);
+  pointer-events: none; /* Deshabilita la selección de texto mientras está oculto */
   user-select: none;
-  pointer-events: none;
 }

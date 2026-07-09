@@ -1,22 +1,63 @@
-.bottom-dock {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--bg-main);
-  border-top: 1px solid var(--border-subtle);
+.app-screen {
+  background-color: var(--bg-main);
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* El scroll ahora maneja de manera natural tanto las tarjetas como el bloque de botones sin solapamientos */
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
   padding: var(--space-md);
-  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Cambiamos el dock para que no flote encima de nada, sino que sea un contenedor normal al final del scroll */
+.bottom-dock {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-lg); /* Espaciado extra para separar las tarjetas de los atajos */
+  padding-bottom: var(--space-md);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .main-action-btn {
-  width: 100%;
   background: var(--color-primary);
   color: var(--bg-main);
+  border: none;
+  border-radius: var(--radius-card);
+  padding: 16px;
   font-size: 15px;
-  font-weight: 700;
-  padding: 14px;
+  font-weight: 800;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px var(--color-primary-glow);
+}
+
+.main-action-btn:active {
+  transform: scale(0.98);
+}
+
+.feedback-toast {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-primary);
+  color: var(--text-main);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-btn);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: var(--space-sm);
+  animation: toastFadeIn 0.2s ease-out;
 }
 
 .loading-state {
@@ -24,33 +65,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
   height: 100%;
   color: var(--text-muted);
   font-size: 14px;
+  gap: var(--space-md);
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 3px solid var(--border-subtle);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.feedback-toast {
-  background: var(--color-primary-glow);
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary);
-  font-size: 13px;
-  font-weight: 600;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-btn);
-  margin-bottom: var(--space-md);
-  text-align: center;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

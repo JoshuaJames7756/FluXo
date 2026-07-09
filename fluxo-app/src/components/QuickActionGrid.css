@@ -1,17 +1,29 @@
 .quick-action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
 .quick-action-btn {
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-btn);
-  padding: var(--space-md);
+  border: 1px solid rgba(244, 63, 94, 0.25);
   color: var(--color-expense);
+  border-radius: var(--radius-btn);
+  padding: 14px var(--space-sm);
   font-size: 13px;
-  font-weight: 600;
-  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  outline: none;
+}
+
+.quick-action-btn:hover {
+  background: rgba(244, 63, 94, 0.05);
+  border-color: var(--color-expense);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.97);
 }

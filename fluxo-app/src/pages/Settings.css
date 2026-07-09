@@ -1,22 +1,35 @@
-.settings-section {
-  background: var(--bg-surface);
-  border-radius: var(--radius-card);
+.settings-screen {
+  background-color: var(--bg-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-container {
+  flex: 1;
+  overflow-y: auto;
   padding: var(--space-md);
-  margin-bottom: var(--space-md);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .settings-section-title {
+  color: var(--text-main);
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: var(--space-xs);
+  margin: 0;
 }
 
 .settings-section-desc {
-  font-size: 12px;
   color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.5;
-  margin-bottom: var(--space-md);
+  margin: 0 0 var(--space-sm) 0;
 }
 
 .settings-form {
@@ -25,15 +38,44 @@
   gap: var(--space-md);
 }
 
+/* Indicador de saldo actual en el ajuste */
 .current-balance-hint {
-  font-size: 12px;
-  color: var(--color-primary);
-  margin-top: calc(var(--space-xs) * -1);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
 }
 
-.settings-feedback {
-  font-size: 12px;
-  color: var(--color-primary);
-  text-align: center;
+.current-balance-hint span {
+  color: var(--text-muted);
   font-weight: 600;
+}
+
+.current-balance-hint strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Alerta de Feedback Exitoso */
+.settings-feedback-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #10b981; /* Verde esmeralda para éxito */
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+  font-size: 13px;
+  font-weight: 700;
+  animation: fadeInForm 0.2s ease-out;
+}
+
+@keyframes fadeInForm {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

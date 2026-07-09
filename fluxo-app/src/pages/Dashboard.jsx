@@ -21,6 +21,7 @@ export default function Dashboard({
   const { rate, updateRate } = useExchangeRate();
   const [feedback, setFeedback] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false); // Estado elevado aquí para controlar toda la app
 
   const handleQuickAction = async (action) => {
     const efectivo = pockets.find((p) => p.name === 'Efectivo');
@@ -67,12 +68,14 @@ export default function Dashboard({
         onOpenSettings={onOpenSettings}
         isOnline={isOnline}
         isSyncing={isSyncing}
+        isPrivate={isPrivate}
+        setIsPrivate={setIsPrivate}
       />
 
       <div className="scroll-container">
         {feedback && <div className="feedback-toast">{feedback}</div>}
         {pockets.map((pocket) => (
-          <PocketCard key={pocket.id} pocket={pocket} isPrivate={false} />
+          <PocketCard key={pocket.id} pocket={pocket} isPrivate={isPrivate} />
         ))}
       </div>
 

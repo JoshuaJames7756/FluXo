@@ -1,42 +1,62 @@
 .pocket-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--color-primary); /* Caída por defecto si falla el style inline */
   border-radius: var(--radius-card);
-  border-left: 4px solid;
   padding: var(--space-md);
-  margin-bottom: var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pocket-card:hidden {
+  display: none;
 }
 
 .pocket-info {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
-.pocket-icon {
-  font-size: 22px;
+.pocket-icon-wrapper {
+  background: var(--bg-main);
+  border: 1px solid var(--border-subtle);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pocket-text {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .pocket-name {
-  font-size: 15px;
-  font-weight: 600;
   color: var(--text-main);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .pocket-currency {
-  font-size: 11px;
   color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pocket-balance-wrapper {
+  text-align: right;
 }
 
 .pocket-balance {
+  color: var(--text-main);
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-main);
+  font-variant-numeric: tabular-nums; /* Mantiene los números alineados perfectamente sin saltos */
 }

@@ -28,23 +28,28 @@ export default function Settings({ pockets, registerCashAdjustment, onBack }) {
 
     setFeedback(`Ajuste aplicado. Diferencia registrada: ${differenceLabel}`);
     setNewBalance('');
-    setTimeout(() => setFeedback(''), 3000);
+    setTimeout(() => setFeedback(''), 4000);
   };
 
   return (
-    <div className="app-screen">
+    <div className="app-screen settings-screen">
       <header className="history-header">
-        <button className="back-btn" onClick={onBack} aria-label="Volver">←</button>
+        <button className="back-btn" onClick={onBack} aria-label="Volver">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
         <span className="history-title">Ajustes</span>
-        <span style={{ width: 36 }} />
+        <span style={{ width: 30 }} />
       </header>
 
-      <div className="scroll-container">
+      <div className="scroll-container settings-container">
         <section className="settings-section">
           <h2 className="settings-section-title">Ajuste de Caja Rápido</h2>
           <p className="settings-section-desc">
-            Usa esto si el saldo real en la calle no coincide con lo que muestra FluXo.
-            La diferencia se registra automáticamente como ajuste en el historial.
+            Usa esto si el saldo real en físico/cuenta no coincide con lo que muestra FluXo.
+            La diferencia se calculará y guardará como un ajuste automático en tu historial.
           </p>
 
           <form className="settings-form" onSubmit={handleSubmit}>
@@ -64,9 +69,10 @@ export default function Settings({ pockets, registerCashAdjustment, onBack }) {
             </label>
 
             {selectedPocket && (
-              <p className="current-balance-hint">
-                Saldo actual en FluXo: {centsToDisplay(selectedPocket.balance_cents, selectedPocket.currency)}
-              </p>
+              <div className="current-balance-hint">
+                <span>Saldo actual en app:</span>
+                <strong>{centsToDisplay(selectedPocket.balance_cents, selectedPocket.currency)}</strong>
+              </div>
             )}
 
             <label className="form-label">
@@ -84,10 +90,18 @@ export default function Settings({ pockets, registerCashAdjustment, onBack }) {
             </label>
 
             <button type="submit" className="modal-submit-btn primary-btn">
-              Aplicar ajuste
+              Aplicar ajuste de caja
             </button>
 
-            {feedback && <p className="settings-feedback">{feedback}</p>}
+            {feedback && (
+              <div className="settings-feedback-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span>{feedback}</span>
+              </div>
+            )}
           </form>
         </section>
       </div>
