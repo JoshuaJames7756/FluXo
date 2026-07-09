@@ -1,44 +1,149 @@
+/* Contenedor principal de la pantalla de login */
 .auth-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding: var(--space-lg);
-  gap: var(--space-lg);
+  min-height: 100vh;
+  background-color: #0B111E; /* Tu fondo de app principal más profundo */
+  padding: 24px;
+  box-sizing: border-box;
 }
 
+/* Sección de Branding superior */
 .auth-branding {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
+  text-align: center;
+  margin-bottom: 32px;
 }
 
 .auth-logo {
-  width: 56px;
-  height: 56px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-surface);
-  border: 2px solid var(--color-primary);
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%);
+  color: #0B111E;
   font-size: 28px;
   font-weight: 800;
-  color: var(--color-primary);
-  text-shadow: 0 0 16px var(--color-primary-glow);
-  margin-bottom: var(--space-sm);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.25);
 }
 
 .auth-title {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--text-main);
+  font-size: 32px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.05em;
 }
 
 .auth-subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: center;
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 0;
+}
+
+/* ==========================================================================
+   OVERRIDES DE CLERK (Inyecciones directas mediante selectores de clase)
+   ========================================================================== */
+
+/* Contenedor principal de Clerk sin bordes ni sombras de caja externa */
+.clerk-root-override {
+  width: 100%;
+  max-width: 400px;
+}
+
+.clerk-card-override {
+  background-color: #131A26 !important;
+  border: 1px solid #1E293B !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  padding: 32px 24px !important;
+}
+
+/* Ocultar encabezados redundantes de Clerk porque ya tenemos nuestro branding propio */
+.clerk-header-title,
+.clerk-header-subtitle {
+  display: none !important;
+}
+
+/* Botones sociales (Google, etc.) */
+.clerk-social-btn {
+  background-color: #1E293B !important;
+  border: 1px solid #334155 !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.clerk-social-btn:hover {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+}
+
+.clerk-social-btn-text {
+  color: #F8FAFC !important;
+  font-weight: 500 !important;
+}
+
+/* Divisores "O" entre login social y formulario */
+.clerk-divider-line {
+  background-color: #1E293B !important;
+}
+
+.clerk-divider-text {
+  color: #64748B !important;
+  background-color: #131A26 !important;
+}
+
+/* Labels de los campos del formulario */
+.clerk-field-label {
+  color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Inputs de texto y contraseñas */
+.clerk-field-input {
+  border: 1px solid #1E293B !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clerk-field-input:focus {
+  border-color: #06B6D4 !important;
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.15) !important;
+}
+
+/* Botón primario de envío (Submit) */
+.clerk-submit-btn {
+  background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%) !important;
+  color: #0B111E !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  transition: opacity 0.2s ease;
+}
+
+.clerk-submit-btn:hover {
+  opacity: 0.9 !important;
+}
+
+/* Enlaces y pie de página de Clerk */
+.clerk-footer-link {
+  color: #06B6D4 !important;
+  font-weight: 500 !important;
+}
+
+.clerk-footer-override {
+  background: transparent !important;
+  border-top: none !important;
+}
+
+/* Ocultar marca de Clerk opcional si rompe el minimalismo del footer */
+.clerk-footer-override > div {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.clerk-footer-override > div:hover {
+  opacity: 1;
 }

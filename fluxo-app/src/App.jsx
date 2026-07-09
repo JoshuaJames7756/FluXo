@@ -12,11 +12,14 @@ function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const { getToken } = useAuth();
   const hasPulled = useRef(false);
+  
+  // Extraemos txCount aquí para que esté disponible en el ámbito del componente
   const {
     db,
     pockets,
     categories,
     isLoading,
+    txCount, // <--- CORRECCIÓN: Ahora sí lo extraemos de IndexedDB
     registerExpense,
     registerP2PChange,
     registerInternalTransfer,
@@ -25,6 +28,7 @@ function AuthenticatedApp() {
     pullFromServer,
   } = useIndexedDB();
 
+  // Ahora useSyncEngine lo recibe de forma reactiva sin romper la app
   const { isOnline, isSyncing } = useSyncEngine({ db, txCount });
 
   // Al iniciar sesion, si hay conexion, descargamos una vez lo que exista
