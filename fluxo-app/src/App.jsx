@@ -25,7 +25,7 @@ function AuthenticatedApp() {
     pullFromServer,
   } = useIndexedDB();
 
-  const { isOnline, isSyncing } = useSyncEngine({ db });
+  const { isOnline, isSyncing } = useSyncEngine({ db, txCount });
 
   // Al iniciar sesion, si hay conexion, descargamos una vez lo que exista
   // en el servidor y lo fusionamos con IndexedDB (multi dispositivo real)

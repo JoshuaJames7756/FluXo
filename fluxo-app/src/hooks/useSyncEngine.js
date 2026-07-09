@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 
-/**
- * Motor de sincronizacion. Escucha eventos online/offline del navegador,
- * y cuando detecta conexion, sube las transacciones con synced=false
- * desde IndexedDB hacia /api/data.js. Tambien reintenta cada cierto tiempo
- * mientras haya conexion, por si el POST fallo silenciosamente.
- */
-export function useSyncEngine({ db, storeName = 'transactions' }) {
+export function useSyncEngine({ db, txCount = 0, storeName = 'transactions' }) {
   const { getToken, isSignedIn } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -52,7 +46,7 @@ export function useSyncEngine({ db, storeName = 'transactions' }) {
   }, [db, storeName]);
 
   const syncNow = useCallback(async () => {
-    if (!isSignedIn || !navigator.onLine || !db) return;
+    if (!isSignedIn || !navigator.onLine || !db || isSyncing) return;
 
     setIsSyncing(true);
     setLastSyncError(null);
@@ -77,7 +71,7 @@ export function useSyncEngine({ db, storeName = 'transactions' }) {
       });
 
       if (!response.ok) {
-        throw new Error(`Sync fallo con status ${response.status}`);
+        throw new Error(`Sync falló con status ${response.status}`);
       }
 
       const data = await response.json();
@@ -92,9 +86,9 @@ export function useSyncEngine({ db, storeName = 'transactions' }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [isSignedIn, db, getPendingTransactions, markAsSynced, getToken]);
+  }, [isSignedIn, db, isSyncing, getPendingTransactions, markAsSynced, getToken]);
 
-  // Escucha cambios de conectividad
+  // Escucha cambios de red de la API del navegador
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -111,7 +105,14 @@ export function useSyncEngine({ db, storeName = 'transactions' }) {
     };
   }, [syncNow]);
 
-  // Reintento periodico cada 60s mientras haya conexion y sesion activa
+  // Sincronización proactiva instantánea al detectar un cambio de transacción local (txCount)
+  useEffect(() => {
+    if (txCount > 0 && isOnline) {
+      syncNow();
+    }
+  }, [txCount, isOnline, syncNow]);
+
+  // Reintento periódico en segundo plano cada 60s
   useEffect(() => {
     if (isSignedIn && isOnline) {
       intervalRef.current = setInterval(syncNow, 60000);
@@ -121,7 +122,7 @@ export function useSyncEngine({ db, storeName = 'transactions' }) {
     };
   }, [isSignedIn, isOnline, syncNow]);
 
-  // Sync inicial al montar, si ya hay sesion
+  // Sync de seguridad inicial al montar la sesión
   useEffect(() => {
     if (isSignedIn && db) {
       syncNow();

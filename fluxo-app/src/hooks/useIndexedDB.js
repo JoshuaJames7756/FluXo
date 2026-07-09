@@ -6,7 +6,6 @@ const STORE_POCKETS = 'pockets';
 const STORE_TRANSACTIONS = 'transactions';
 const STORE_CATEGORIES = 'categories';
 
-// Bolsillos iniciales, solo se usan la primera vez que se abre la app
 const SEED_POCKETS = [
   { name: 'Binance', currency: 'USD', balance_cents: 0, color_key: 'binance' },
   { name: 'BNB', currency: 'BOB', balance_cents: 0, color_key: 'bank' },
@@ -32,13 +31,11 @@ function openDB() {
       if (!db.objectStoreNames.contains(STORE_POCKETS)) {
         db.createObjectStore(STORE_POCKETS, { keyPath: 'id', autoIncrement: true });
       }
-
       if (!db.objectStoreNames.contains(STORE_TRANSACTIONS)) {
         const txStore = db.createObjectStore(STORE_TRANSACTIONS, { keyPath: 'local_id' });
         txStore.createIndex('synced', 'synced', { unique: false });
         txStore.createIndex('type', 'type', { unique: false });
       }
-
       if (!db.objectStoreNames.contains(STORE_CATEGORIES)) {
         db.createObjectStore(STORE_CATEGORIES, { keyPath: 'id', autoIncrement: true });
       }
@@ -69,16 +66,12 @@ function put(db, storeName, value) {
   });
 }
 
-/**
- * Hook principal de persistencia local. Carga los pockets desde IndexedDB
- * (o los siembra la primera vez), y expone funciones para aplicar movimientos.
- * Todo esto funciona sin conexion; useSyncEngine se encarga de subirlo despues.
- */
 export function useIndexedDB() {
   const [db, setDb] = useState(null);
   const [pockets, setPockets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [txCount, setTxCount] = useState(0); // Pequeño disparador para notificar cambios al SyncEngine
 
   useEffect(() => {
     let mounted = true;
@@ -128,7 +121,6 @@ export function useIndexedDB() {
     setPockets(updated);
   }, [db]);
 
-  // Registra un gasto simple: descuenta de un pocket, guarda la transaccion
   const registerExpense = useCallback(async ({ amountCents, sourcePocketId, categoryId, note, receiptUrl }) => {
     if (!db) return;
 
@@ -155,10 +147,10 @@ export function useIndexedDB() {
     await put(db, STORE_TRANSACTIONS, transaction);
 
     await refreshPockets();
+    setTxCount((prev) => prev + 1);
     return transaction;
   }, [db, refreshPockets]);
 
-  // Registra un cambio P2P: vende USD de Binance, inyecta BOB en la cuenta destino, congela la tasa
   const registerP2PChange = useCallback(async ({ usdAmountCents, agreedRate, destinationPocketId }) => {
     if (!db) return;
 
@@ -190,10 +182,10 @@ export function useIndexedDB() {
     await put(db, STORE_TRANSACTIONS, transaction);
 
     await refreshPockets();
+    setTxCount((prev) => prev + 1);
     return transaction;
   }, [db, refreshPockets]);
 
-  // Traspaso interno BOB -> BOB, no computa como gasto real
   const registerInternalTransfer = useCallback(async ({ amountCents, sourcePocketId, destinationPocketId }) => {
     if (!db) return;
 
@@ -223,10 +215,10 @@ export function useIndexedDB() {
     await put(db, STORE_TRANSACTIONS, transaction);
 
     await refreshPockets();
+    setTxCount((prev) => prev + 1);
     return transaction;
   }, [db, refreshPockets]);
 
-  // Ajuste de caja: fuerza el saldo de un bolsillo y registra la diferencia
   const registerCashAdjustment = useCallback(async ({ pocketId, newBalanceCents }) => {
     if (!db) return;
 
@@ -253,6 +245,7 @@ export function useIndexedDB() {
     await put(db, STORE_TRANSACTIONS, transaction);
 
     await refreshPockets();
+    setTxCount((prev) => prev + 1);
     return transaction;
   }, [db, refreshPockets]);
 
@@ -262,9 +255,6 @@ export function useIndexedDB() {
     return all.sort((a, b) => new Date(b.client_created_at) - new Date(a.client_created_at));
   }, [db]);
 
-  // Descarga el estado del servidor y lo fusiona en IndexedDB.
-  // Se usa al iniciar sesion, para que un dispositivo nuevo (o que perdio
-  // su IndexedDB local) recupere lo que ya existe en Neon.
   const pullFromServer = useCallback(async (getToken) => {
     if (!db) return;
 
@@ -274,18 +264,17 @@ export function useIndexedDB() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error(`Pull fallo con status ${response.status}`);
+      if (!response.ok) throw new Error(`Pull falló con status ${response.status}`);
 
       const serverData = await response.json();
+      const currentLocalPockets = await getAll(db, STORE_POCKETS);
 
-      // Pockets: el servidor es la fuente de verdad de balances
-      // (ya reconciliados via /api/data POST), asi que sobreescribimos local
       for (const serverPocket of serverData.pockets) {
-        const localMatch = (await getAll(db, STORE_POCKETS)).find(
+        const localMatch = currentLocalPockets.find(
           (p) => p.name === serverPocket.name && p.currency === serverPocket.currency
         );
         await put(db, STORE_POCKETS, {
-          ...(localMatch ? { id: localMatch.id } : {}),
+          ...(localMatch ? { id: localMatch.id } : {}), // Mantiene la llave autoincremental de IndexedDB
           name: serverPocket.name,
           currency: serverPocket.currency,
           balance_cents: serverPocket.balance_cents,
@@ -293,9 +282,9 @@ export function useIndexedDB() {
         });
       }
 
-      // Categories: mismo criterio, servidor manda
+      const currentLocalCategories = await getAll(db, STORE_CATEGORIES);
       for (const serverCategory of serverData.categories) {
-        const localMatch = (await getAll(db, STORE_CATEGORIES)).find(
+        const localMatch = currentLocalCategories.find(
           (c) => c.name === serverCategory.name
         );
         await put(db, STORE_CATEGORIES, {
@@ -305,8 +294,6 @@ export function useIndexedDB() {
         });
       }
 
-      // Transactions: solo agregamos las que no existen localmente
-      // (evita pisar transacciones locales aun no sincronizadas)
       const localTransactions = await getAll(db, STORE_TRANSACTIONS);
       const localIds = new Set(localTransactions.map((t) => t.local_id));
 
@@ -329,6 +316,7 @@ export function useIndexedDB() {
     pockets,
     categories,
     isLoading,
+    txCount, // Expuesto para activar el disparador del SyncEngine
     registerExpense,
     registerP2PChange,
     registerInternalTransfer,
