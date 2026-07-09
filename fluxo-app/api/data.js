@@ -80,7 +80,28 @@ async function handleGet(req, res, userId) {
       LIMIT 200
     `;
 
-    return res.status(200).json({ pockets, categories, transactions });
+    // IMPORTANTE: @neondatabase/serverless devuelve columnas BIGINT como
+    // string en JS (para no perder precision), no como number. Si no se
+    // convierten aqui, sumas como "total + balance_cents" en el frontend
+    // terminan concatenando texto en vez de sumar numeros.
+    const normalizedPockets = pockets.map((p) => ({
+      ...p,
+      balance_cents: Number(p.balance_cents),
+    }));
+
+    const normalizedTransactions = transactions.map((t) => ({
+      ...t,
+      amount_cents: Number(t.amount_cents),
+      exchange_rate_snapshot: t.exchange_rate_snapshot !== null
+        ? Number(t.exchange_rate_snapshot)
+        : null,
+    }));
+
+    return res.status(200).json({
+      pockets: normalizedPockets,
+      categories,
+      transactions: normalizedTransactions,
+    });
   } catch (err) {
     console.error('Error en GET /api/data:', err);
     return res.status(500).json({ error: 'Error al obtener los datos' });
@@ -160,7 +181,12 @@ async function handlePost(req, res, userId) {
       SELECT * FROM pockets WHERE user_id = ${userId} ORDER BY id ASC
     `;
 
-    return res.status(200).json({ results, pockets: updatedPockets });
+    const normalizedUpdatedPockets = updatedPockets.map((p) => ({
+      ...p,
+      balance_cents: Number(p.balance_cents),
+    }));
+
+    return res.status(200).json({ results, pockets: normalizedUpdatedPockets });
   } catch (err) {
     console.error('Error en POST /api/data:', err);
     return res.status(500).json({ error: 'Error al sincronizar transacciones' });

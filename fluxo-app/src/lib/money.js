@@ -29,9 +29,14 @@ export function usdCentsToBobCents(usdCents, rate) {
 // Calcula el Gran Total General: suma de bolsillos BOB + (Binance USD * tasa)
 export function calculateGrandTotal(pockets, exchangeRate) {
   return pockets.reduce((total, pocket) => {
+    // Number(...) como blindaje: si balance_cents llegara como string
+    // (ej. BIGINT de Postgres sin normalizar), evita que "+" concatene
+    // texto en vez de sumar.
+    const balanceCents = Number(pocket.balance_cents) || 0;
+
     if (pocket.currency === 'USD') {
-      return total + usdCentsToBobCents(pocket.balance_cents, exchangeRate);
+      return total + usdCentsToBobCents(balanceCents, exchangeRate);
     }
-    return total + pocket.balance_cents;
+    return total + balanceCents;
   }, 0);
 }
