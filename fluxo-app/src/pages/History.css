@@ -156,3 +156,58 @@
   font-size: 14px;
   text-align: center;
 }
+
+/* Contenedor de Skeletons */
+.history-skeletons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Modificador del ítem para modo carga */
+.skeleton-item {
+  pointer-events: none;
+  background-color: #131A26 !important; /* Coincide con tus fondos de tarjeta oscuros */
+  border: 1px solid #1E293B;
+}
+
+/* Líneas base del Skeleton */
+.skeleton-line {
+  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+  background-size: 200% 100%;
+  animation: pulse-skeleton 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  width: 80px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  width: 160px;
+  height: 12px;
+}
+
+/* El espacio donde simula ir el monto numérico */
+.skeleton-badge {
+  width: 70px;
+  height: 18px;
+  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+  background-size: 200% 100%;
+  animation: pulse-skeleton 1.5s infinite linear;
+  border-radius: 6px;
+  align-self: center;
+}
+
+/* Animación de barrido/pulso premium */
+@keyframes pulse-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

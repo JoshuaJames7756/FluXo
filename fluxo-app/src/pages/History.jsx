@@ -68,9 +68,18 @@ export default function History({ getTransactionHistory, pockets, categories, on
       </div>
 
       <div className="scroll-container history-list">
+        {/* ESTADO SKELETON: Renderiza 4 tarjetas fantasmas con animación mientras carga */}
         {isLoading && (
-          <div className="history-empty">
-            <p>Cargando transacciones...</p>
+          <div className="history-skeletons-container">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="history-item skeleton-item">
+                <div className="history-item-main">
+                  <div className="skeleton-line skeleton-title"></div>
+                  <div className="skeleton-line skeleton-subtitle"></div>
+                </div>
+                <div className="skeleton-badge"></div>
+              </div>
+            ))}
           </div>
         )}
 
