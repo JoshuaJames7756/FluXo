@@ -1,16 +1,21 @@
+/* ==========================================================================
+   ESTRUCTURA PRINCIPAL Y ANIMACIONES (BOTTOM SHEET)
+   ========================================================================== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100vh;
-  background-color: rgba(11, 17, 30, 0.6); /* Capa oscura sutil */
-  backdrop-filter: blur(4px); /* Difumina el fondo de la app al abrirse */
+  background-color: rgba(11, 17, 30, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
-  align-items: flex-end; /* Efecto "Bottom Sheet" nativo de iOS/Android */
+  align-items: flex-end; /* Efecto móvil nativo */
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.2s ease-out;
+  transition: opacity 0.2s ease;
 }
 
 .modal-sheet {
@@ -23,7 +28,7 @@
   max-height: 90vh;
   overflow-y: auto;
   padding: var(--space-md);
-  padding-bottom: calc(var(--space-lg) + 20px); /* Margen extra para teclados móviles */
+  padding-bottom: calc(var(--space-lg) + 20px); /* Espacio preventivo para teclados en iOS/Android */
   box-sizing: border-box;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -36,6 +41,10 @@
   border-radius: 2px;
   margin: 0 auto var(--space-md) auto;
 }
+
+/* ==========================================================================
+   NAVEGACIÓN POR PESTAÑAS (TABS)
+   ========================================================================== */
 
 .modal-tabs {
   display: flex;
@@ -57,7 +66,7 @@
   font-weight: 700;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.1s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 .modal-tab.is-active {
@@ -65,6 +74,14 @@
   color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
+.modal-tab:not(.is-active):not(:disabled):active {
+  transform: scale(0.96);
+}
+
+/* ==========================================================================
+   FORMULARIOS Y CAMPOS DE ENTRADA
+   ========================================================================== */
 
 .modal-form {
   display: flex;
@@ -95,7 +112,7 @@
   outline: none;
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s, opacity 0.2s;
 }
 
 .form-input:focus,
@@ -107,6 +124,10 @@
   color: var(--text-muted);
   opacity: 0.5;
 }
+
+/* ==========================================================================
+   GESTIÓN DE RECIBOS (FOTOS)
+   ========================================================================== */
 
 .receipt-upload-btn {
   background-color: var(--bg-surface);
@@ -121,12 +142,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: transform 0.1s ease, border-color 0.2s, background-color 0.2s;
 }
 
-.receipt-upload-btn:hover {
+.receipt-upload-btn:not(:disabled):hover {
   border-color: var(--color-primary);
   background-color: rgba(6, 182, 212, 0.02);
+}
+
+.receipt-upload-btn:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 .receipt-preview-wrapper {
@@ -136,12 +161,15 @@
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   max-height: 200px;
+  display: inline-block;
+  width: 100%;
 }
 
 .receipt-preview {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  transition: filter 0.2s ease;
 }
 
 .receipt-remove-btn {
@@ -157,19 +185,30 @@
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(4px);
+  transition: transform 0.1s ease, opacity 0.2s ease;
 }
 
+.receipt-remove-btn:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+/* Previsualización en vivo para cálculos P2P */
 .form-preview {
   background-color: rgba(245, 158, 11, 0.05);
   border: 1px solid rgba(245, 158, 11, 0.2);
+  border-left: 3px solid var(--color-binance);
   color: var(--color-binance);
   padding: var(--space-sm);
-  border-radius: 8px;
+  border-radius: 0 8px 8px 0;
   font-size: 13px;
   font-weight: 700;
   text-align: center;
   margin: 0;
 }
+
+/* ==========================================================================
+   BOTONES DE CONFIRMACIÓN (SUBMIT) Y ESTADOS ACCESIBLES
+   ========================================================================== */
 
 .modal-submit-btn {
   border: none;
@@ -180,12 +219,7 @@
   width: 100%;
   cursor: pointer;
   margin-top: var(--space-sm);
-  transition: all 0.2s ease;
-}
-
-.modal-submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  transition: transform 0.1s ease, background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
 .expense-btn {
@@ -207,10 +241,46 @@
 }
 
 .modal-submit-btn:not(:disabled):active {
-  transform: scale(0.98);
+  transform: scale(0.98); /* Contracción suave elástica nativa */
 }
 
-/* Animaciones fluidas */
+/* ==========================================================================
+   CONTROL DE BLOQUEO DE INTERFAZ (FREEZING UX)
+   ========================================================================== */
+
+/* Bloquea la interacción del overlay completo durante operaciones asíncronas */
+.js-modal-freezing {
+  pointer-events: none;
+}
+
+/* Inhabilitación nativa mediante el fieldset inyectado */
+fieldset:disabled .form-input,
+fieldset:disabled .form-select {
+  background-color: var(--bg-main);
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+fieldset:disabled .receipt-preview {
+  filter: brightness(0.4) grayscale(0.2); /* Feedback visual de subida de archivos */
+}
+
+/* Estado bloqueado para todos los botones de acción */
+.modal-submit-btn:disabled,
+.modal-tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: var(--border-subtle) !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   KEYFRAMES DE ANIMACIONES
+   ========================================================================== */
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

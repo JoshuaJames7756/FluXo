@@ -19,6 +19,9 @@ export default function TransactionModal({
   onRegisterInternalTransfer,
 }) {
   const [activeTab, setActiveTab] = useState('expense');
+  
+  // Estado global de envío para congelar todo el modal durante el guardado
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estado del formulario de Gasto
   const [expenseAmount, setExpenseAmount] = useState('');
@@ -42,6 +45,7 @@ export default function TransactionModal({
   if (!isOpen) return null;
 
   const resetAndClose = () => {
+    if (isSubmitting) return; // Evita cerrar el modal a mitad de una subida
     setExpenseAmount('');
     setExpenseSourceId('');
     setExpenseCategoryId('');
@@ -71,9 +75,10 @@ export default function TransactionModal({
 
   const handleSubmitExpense = async (e) => {
     e.preventDefault();
-    if (!expenseAmount || !expenseSourceId) return;
+    if (!expenseAmount || !expenseSourceId || isSubmitting) return;
 
     let receiptUrl = null;
+    setIsSubmitting(true);
 
     if (receiptFile) {
       setIsUploadingReceipt(true);
@@ -87,45 +92,65 @@ export default function TransactionModal({
       }
     }
 
-    await onRegisterExpense({
-      amountCents: displayToCents(expenseAmount),
-      sourcePocketId: Number(expenseSourceId),
-      categoryId: expenseCategoryId ? Number(expenseCategoryId) : null,
-      note: expenseNote,
-      receiptUrl,
-    });
-    resetAndClose();
+    try {
+      await onRegisterExpense({
+        amountCents: displayToCents(expenseAmount),
+        sourcePocketId: Number(expenseSourceId),
+        categoryId: expenseCategoryId ? Number(expenseCategoryId) : null,
+        note: expenseNote,
+        receiptUrl,
+      });
+      resetAndClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmitP2P = async (e) => {
     e.preventDefault();
-    if (!p2pUsdAmount || !p2pRate || !p2pDestinationId) return;
+    if (!p2pUsdAmount || !p2pRate || !p2pDestinationId || isSubmitting) return;
 
-    await onRegisterP2PChange({
-      usdAmountCents: displayToCents(p2pUsdAmount),
-      agreedRate: parseFloat(p2pRate),
-      destinationPocketId: Number(p2pDestinationId),
-    });
-    resetAndClose();
+    try {
+      setIsSubmitting(true);
+      await onRegisterP2PChange({
+        usdAmountCents: displayToCents(p2pUsdAmount),
+        agreedRate: parseFloat(p2pRate),
+        destinationPocketId: Number(p2pDestinationId),
+      });
+      resetAndClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmitTransfer = async (e) => {
     e.preventDefault();
-    if (!transferAmount || !transferSourceId || !transferDestinationId) return;
+    if (!transferAmount || !transferSourceId || !transferDestinationId || isSubmitting) return;
     if (transferSourceId === transferDestinationId) return;
 
-    await onRegisterInternalTransfer({
-      amountCents: displayToCents(transferAmount),
-      sourcePocketId: Number(transferSourceId),
-      destinationPocketId: Number(transferDestinationId),
-    });
-    resetAndClose();
+    try {
+      setIsSubmitting(true);
+      await onRegisterInternalTransfer({
+        amountCents: displayToCents(transferAmount),
+        sourcePocketId: Number(transferSourceId),
+        destinationPocketId: Number(transferDestinationId),
+      });
+      resetAndClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const bobPockets = pockets.filter((p) => p.currency === 'BOB');
 
   return (
-    <div className="modal-overlay" onClick={resetAndClose}>
+    <div className={`modal-overlay ${isSubmitting ? 'js-modal-freezing' : ''}`} onClick={resetAndClose}>
       <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="modal-handle" />
 
@@ -134,210 +159,213 @@ export default function TransactionModal({
             <button
               key={tab.key}
               className={`modal-tab ${activeTab === tab.key ? 'is-active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => !isSubmitting && setActiveTab(tab.key)}
+              disabled={isSubmitting}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {activeTab === 'expense' && (
-          <form className="modal-form" onSubmit={handleSubmitExpense}>
-            <label className="form-label">
-              Monto (Bs)
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                className="form-input"
-                value={expenseAmount}
-                onChange={(e) => setExpenseAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </label>
+        <fieldset disabled={isSubmitting} style={{ border: 'none', padding: 0, margin: 0 }}>
+          {activeTab === 'expense' && (
+            <form className="modal-form" onSubmit={handleSubmitExpense}>
+              <label className="form-label">
+                Monto (Bs)
+                <input
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  className="form-input"
+                  value={expenseAmount}
+                  onChange={(e) => setExpenseAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </label>
 
-            <label className="form-label">
-              Pagado con
-              <select
-                className="form-select"
-                value={expenseSourceId}
-                onChange={(e) => setExpenseSourceId(e.target.value)}
-                required
-              >
-                <option value="">Selecciona cuenta</option>
-                {pockets.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </label>
+              <label className="form-label">
+                Pagado con
+                <select
+                  className="form-select"
+                  value={expenseSourceId}
+                  onChange={(e) => setExpenseSourceId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecciona cuenta</option>
+                  {pockets.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="form-label">
-              Categoría
-              <select
-                className="form-select"
-                value={expenseCategoryId}
-                onChange={(e) => setExpenseCategoryId(e.target.value)}
-              >
-                <option value="">Sin categoría</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                ))}
-              </select>
-            </label>
+              <label className="form-label">
+                Categoría
+                <select
+                  className="form-select"
+                  value={expenseCategoryId}
+                  onChange={(e) => setExpenseCategoryId(e.target.value)}
+                >
+                  <option value="">Sin categoría</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="form-label">
-              Nota (opcional)
-              <input
-                type="text"
-                className="form-input"
-                value={expenseNote}
-                onChange={(e) => setExpenseNote(e.target.value)}
-                placeholder="Ej. Almuerzo con cliente"
-              />
-            </label>
+              <label className="form-label">
+                Nota (opcional)
+                <input
+                  type="text"
+                  className="form-input"
+                  value={expenseNote}
+                  onChange={(e) => setExpenseNote(e.target.value)}
+                  placeholder="Ej. Almuerzo con cliente"
+                />
+              </label>
 
-            <div className="form-label">
-              <span>Recibo (opcional)</span>
-              {!receiptPreview ? (
-                <label className="receipt-upload-btn">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleReceiptSelect}
-                    style={{ display: 'none' }}
-                  />
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                  Adjuntar foto del recibo
-                </label>
-              ) : (
-                <div className="receipt-preview-wrapper">
-                  <img src={receiptPreview} alt="Preview del recibo" className="receipt-preview" />
-                  <button type="button" className="receipt-remove-btn" onClick={handleRemoveReceipt}>
-                    Quitar
-                  </button>
-                </div>
+              <div className="form-label">
+                <span>Recibo (opcional)</span>
+                {!receiptPreview ? (
+                  <label className="receipt-upload-btn">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleReceiptSelect}
+                      style={{ display: 'none' }}
+                    />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Adjuntar foto del recibo
+                  </label>
+                ) : (
+                  <div className="receipt-preview-wrapper">
+                    <img src={receiptPreview} alt="Preview del recibo" className="receipt-preview" />
+                    <button type="button" className="receipt-remove-btn" onClick={handleRemoveReceipt} disabled={isSubmitting}>
+                      Quitar
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button type="submit" className="modal-submit-btn expense-btn" disabled={isSubmitting}>
+                {isUploadingReceipt ? 'Subiendo recibo...' : isSubmitting ? 'Registrando...' : 'Registrar gasto'}
+              </button>
+            </form>
+          )}
+
+          {activeTab === 'p2p_change' && (
+            <form className="modal-form" onSubmit={handleSubmitP2P}>
+              <label className="form-label">
+                Monto vendido (USD)
+                <input
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  className="form-input"
+                  value={p2pUsdAmount}
+                  onChange={(e) => setP2pUsdAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </label>
+
+              <label className="form-label">
+                Tasa acordada
+                <input
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  className="form-input"
+                  value={p2pRate}
+                  onChange={(e) => setP2pRate(e.target.value)}
+                  placeholder="Ej. 11.50"
+                  required
+                />
+              </label>
+
+              <label className="form-label">
+                Cuenta destino
+                <select
+                  className="form-select"
+                  value={p2pDestinationId}
+                  onChange={(e) => setP2pDestinationId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecciona cuenta BOB</option>
+                  {bobPockets.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+
+              {p2pUsdAmount && p2pRate && (
+                <p className="form-preview">
+                  Recibirás aprox. Bs {(parseFloat(p2pUsdAmount) * parseFloat(p2pRate)).toFixed(2)}
+                </p>
               )}
-            </div>
 
-            <button type="submit" className="modal-submit-btn expense-btn" disabled={isUploadingReceipt}>
-              {isUploadingReceipt ? 'Subiendo recibo...' : 'Registrar gasto'}
-            </button>
-          </form>
-        )}
+              <button type="submit" className="modal-submit-btn binance-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Procesando...' : 'Confirmar cambio'}
+              </button>
+            </form>
+          )}
 
-        {activeTab === 'p2p_change' && (
-          <form className="modal-form" onSubmit={handleSubmitP2P}>
-            <label className="form-label">
-              Monto vendido (USD)
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                className="form-input"
-                value={p2pUsdAmount}
-                onChange={(e) => setP2pUsdAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </label>
+          {activeTab === 'internal_transfer' && (
+            <form className="modal-form" onSubmit={handleSubmitTransfer}>
+              <label className="form-label">
+                Monto (Bs)
+                <input
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  className="form-input"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </label>
 
-            <label className="form-label">
-              Tasa acordada
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                className="form-input"
-                value={p2pRate}
-                onChange={(e) => setP2pRate(e.target.value)}
-                placeholder="Ej. 11.50"
-                required
-              />
-            </label>
+              <label className="form-label">
+                Desde
+                <select
+                  className="form-select"
+                  value={transferSourceId}
+                  onChange={(e) => setTransferSourceId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecciona cuenta origen</option>
+                  {bobPockets.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="form-label">
-              Cuenta destino
-              <select
-                className="form-select"
-                value={p2pDestinationId}
-                onChange={(e) => setP2pDestinationId(e.target.value)}
-                required
-              >
-                <option value="">Selecciona cuenta BOB</option>
-                {bobPockets.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </label>
+              <label className="form-label">
+                Hacia
+                <select
+                  className="form-select"
+                  value={transferDestinationId}
+                  onChange={(e) => setTransferDestinationId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecciona cuenta destino</option>
+                  {bobPockets.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
 
-            {p2pUsdAmount && p2pRate && (
-              <p className="form-preview">
-                Recibirás aprox. Bs {(parseFloat(p2pUsdAmount) * parseFloat(p2pRate)).toFixed(2)}
-              </p>
-            )}
-
-            <button type="submit" className="modal-submit-btn binance-btn">
-              Confirmar cambio
-            </button>
-          </form>
-        )}
-
-        {activeTab === 'internal_transfer' && (
-          <form className="modal-form" onSubmit={handleSubmitTransfer}>
-            <label className="form-label">
-              Monto (Bs)
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                className="form-input"
-                value={transferAmount}
-                onChange={(e) => setTransferAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </label>
-
-            <label className="form-label">
-              Desde
-              <select
-                className="form-select"
-                value={transferSourceId}
-                onChange={(e) => setTransferSourceId(e.target.value)}
-                required
-              >
-                <option value="">Selecciona cuenta origen</option>
-                {bobPockets.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="form-label">
-              Hacia
-              <select
-                className="form-select"
-                value={transferDestinationId}
-                onChange={(e) => setTransferDestinationId(e.target.value)}
-                required
-              >
-                <option value="">Selecciona cuenta destino</option>
-                {bobPockets.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </label>
-
-            <button type="submit" className="modal-submit-btn primary-btn">
-              Registrar traspaso
-            </button>
-          </form>
-        )}
+              <button type="submit" className="modal-submit-btn primary-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Transfiriendo...' : 'Registrar traspaso'}
+              </button>
+            </form>
+          )}
+        </fieldset>
       </div>
     </div>
   );
